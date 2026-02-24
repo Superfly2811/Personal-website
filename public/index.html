@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="nb">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Verdens temperaturer</title>
+<style>
+body{font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial;margin:20px}
+h1{font-size:1.6rem}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+.card{padding:12px;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,0.08)}
+.city{font-weight:700}
+.temp{font-size:1.5rem}
+</style>
+</head>
+<body>
+<h1>Temperaturer</h1>
+<p id="status">Laster...</p>
+<div class="grid" id="cities"></div>
+
+
+<script>
+const cities = [
+{name: 'Oslo, NO', lat:59.9139, lon:10.7522},
+{name: 'London, GB', lat:51.5074, lon:-0.1278},
+{name: 'New York, US', lat:40.7128, lon:-74.0060}
+];
+
+
+const container = document.getElementById('cities');
+const status = document.getElementById('status');
+
+
+function makeCard(city){
+const el = document.createElement('div');
+el.className = 'card';
+el.innerHTML = `<div class="city">${city.name}</div><div class="temp">—</div>`;
+return el;
+}
+
+
+const cardEls = {};
+cities.forEach(c => { const card = makeCard(c); container.appendChild(card); cardEls[c.name] = card; });
+
+
+async function fetchTemp(city){
+try{
+const res = await fetch(`/weather?lat=${city.lat}&lon=${city.lon}`);
+const data = await res.json();
+const temp = data?.properties?.timeseries?.[0]?.data?.instant?.details?.air_temperature;
+cardEls[city.name].querySelector('.temp').textContent = temp ? `${temp.toFixed(1)} °C` : 'Ingen data';
+}catch(err){ cardEls[city.name].querySelector('.temp').textContent = 'Feil'; }
+}
+
+
+async function updateAll(){
+status.textContent = 'Oppdaterer...';
+await Promise.all(cities.map(c => fetchTemp(c)));
+status.textContent = `Sist oppdatert: ${new Date().toLocaleString('nb-NO')}`;
+}
+
+
+updateAll();
+</script>
+</body>
+</html>
