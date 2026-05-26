@@ -1,0 +1,11 @@
+{
+	"folders": [
+		{
+			"name": "v-r-api-nettside",
+			"path": "."
+		}
+	],
+	"settings": {
+		"liveServer.settings.multiRootWorkspaceName": "public"
+	}
+}
