@@ -5,60 +5,93 @@
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Verdens temperaturer</title>
 <style>
-body{font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial;margin:20px}
-h1{font-size:1.6rem}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
-.card{padding:12px;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,0.08)}
-.city{font-weight:700}
-.temp{font-size:1.5rem}
+* { box-sizing: border-box; }
+body { font-family: system-ui, Segoe UI, Roboto, Helvetica, Arial; margin: 0; padding: 24px; background: #f5f5f3; }
+.weather-wrap { max-width: 700px; margin: 0 auto; }
+.weather-header { display: flex; align-items: baseline; gap: 12px; margin-bottom: 8px; }
+.weather-title { font-size: 20px; font-weight: 500; color: #1a1a1a; margin: 0; }
+.refresh-btn { background: none; border: 0.5px solid #ccc; border-radius: 8px; padding: 4px 10px; font-size: 12px; color: #666; cursor: pointer; display: flex; align-items: center; gap: 4px; margin-left: auto; }
+.refresh-btn:hover { background: #eee; }
+.refresh-btn:disabled { opacity: 0.5; cursor: default; }
+#status { font-size: 12px; color: #888; margin: 0 0 1rem; }
+.city-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+.city-card { background: #fff; border: 0.5px solid #e0e0e0; border-radius: 12px; padding: 1rem 1.25rem; transition: border-color 0.2s; }
+.city-card:hover { border-color: #bbb; }
+.card-top { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+.city-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
+.city-name { font-size: 13px; font-weight: 500; color: #1a1a1a; line-height: 1.3; }
+.city-country { font-size: 11px; color: #888; }
+.temp-row { display: flex; align-items: baseline; gap: 6px; }
+.temp-val { font-size: 26px; font-weight: 500; color: #1a1a1a; line-height: 1; }
+.temp-unit { font-size: 13px; color: #888; }
+.temp-loading { font-size: 26px; font-weight: 500; color: #ccc; }
 </style>
 </head>
 <body>
-<h1>Temperaturer</h1>
-<p id="status">Laster...</p>
-<div class="grid" id="cities"></div>
-
+<div class="weather-wrap">
+  <div class="weather-header">
+    <h1 class="weather-title">🌡 Temperaturer</h1>
+    <button class="refresh-btn" onclick="updateAll()" id="refreshBtn">↻ Oppdater</button>
+  </div>
+  <p id="status"></p>
+  <div class="city-grid" id="cities"></div>
+</div>
 
 <script>
 const cities = [
-{name: 'Oslo, NO', lat:59.9139, lon:10.7522},
-{name: 'London, GB', lat:51.5074, lon:-0.1278},
-{name: 'New York, US', lat:40.7128, lon:-74.0060}
+  { name: 'Oslo',     country: 'Norge',          flag: '🇳🇴', lat: 59.9139, lon: 10.7522,  bg: '#E1F5EE' },
+  { name: 'London',   country: 'Storbritannia',  flag: '🇬🇧', lat: 51.5074, lon: -0.1278,  bg: '#E6F1FB' },
+  { name: 'New York', country: 'USA',            flag: '🇺🇸', lat: 40.7128, lon: -74.0060, bg: '#FAEEDA' }
 ];
 
-
 const container = document.getElementById('cities');
-const status = document.getElementById('status');
+const status    = document.getElementById('status');
+const cardEls   = {};
 
+cities.forEach(c => {
+  const card = document.createElement('div');
+  card.className = 'city-card';
+  card.innerHTML = `
+    <div class="card-top">
+      <div class="city-icon" style="background:${c.bg}">${c.flag}</div>
+      <div>
+        <div class="city-name">${c.name}</div>
+        <div class="city-country">${c.country}</div>
+      </div>
+    </div>
+    <div class="temp-row"><span class="temp-loading" data-temp>—</span></div>
+  `;
+  container.appendChild(card);
+  cardEls[c.name] = card;
+});
 
-function makeCard(city){
-const el = document.createElement('div');
-el.className = 'card';
-el.innerHTML = `<div class="city">${city.name}</div><div class="temp">—</div>`;
-return el;
+async function fetchTemp(city) {
+  const el = cardEls[city.name].querySelector('[data-temp]');
+  try {
+    const res  = await fetch(`https://api.met.no/weatherapi/locationforecast/2.0/compact?lat=${city.lat}&lon=${city.lon}`);
+    const data = await res.json();
+    const temp = data?.properties?.timeseries?.[0]?.data?.instant?.details?.air_temperature;
+    if (temp != null) {
+      el.className = 'temp-val';
+      el.textContent = temp.toFixed(1);
+      el.insertAdjacentHTML('afterend', '<span class="temp-unit">°C</span>');
+    } else {
+      el.textContent = 'Ingen data';
+    }
+  } catch {
+    el.textContent = 'Feil';
+    el.style.fontSize = '14px';
+    el.style.color = '#c0392b';
+  }
 }
 
-
-const cardEls = {};
-cities.forEach(c => { const card = makeCard(c); container.appendChild(card); cardEls[c.name] = card; });
-
-
-async function fetchTemp(city){
-try{
-const res = await fetch(`/weather?lat=${city.lat}&lon=${city.lon}`);
-const data = await res.json();
-const temp = data?.properties?.timeseries?.[0]?.data?.instant?.details?.air_temperature;
-cardEls[city.name].querySelector('.temp').textContent = temp ? `${temp.toFixed(1)} °C` : 'Ingen data';
-}catch(err){ cardEls[city.name].querySelector('.temp').textContent = 'Feil'; }
+async function updateAll() {
+  status.textContent = 'Henter data…';
+  document.getElementById('refreshBtn').disabled = true;
+  await Promise.all(cities.map(c => fetchTemp(c)));
+  status.textContent = `Oppdatert ${new Date().toLocaleString('nb-NO')}`;
+  document.getElementById('refreshBtn').disabled = false;
 }
-
-
-async function updateAll(){
-status.textContent = 'Oppdaterer...';
-await Promise.all(cities.map(c => fetchTemp(c)));
-status.textContent = `Sist oppdatert: ${new Date().toLocaleString('nb-NO')}`;
-}
-
 
 updateAll();
 </script>
