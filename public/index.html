@@ -8,11 +8,17 @@
 * { box-sizing: border-box; }
 body { font-family: system-ui, Segoe UI, Roboto, Helvetica, Arial; margin: 0; padding: 24px; background: #f5f5f3; color: #1a1a1a; }
 .wrap { max-width: 700px; margin: 0 auto; }
-
+ 
+/* ── Topbar ── */
+.topbar { display: flex; align-items: center; justify-content: flex-end; margin-bottom: 1.5rem; gap: 10px; }
+.user-pill { font-size: 12px; color: #666; background: #fff; border: 0.5px solid #e0e0e0; border-radius: 99px; padding: 4px 12px; }
+.logout-btn { font-size: 12px; color: #c0392b; background: none; border: 0.5px solid #e0c0c0; border-radius: 99px; padding: 4px 12px; cursor: pointer; text-decoration: none; }
+.logout-btn:hover { background: #FCEBEB; }
+ 
 /* ── Felles ── */
 h1, h2 { font-size: 20px; font-weight: 500; margin: 0; }
 section { margin-bottom: 2.5rem; }
-
+ 
 /* ── Vær ── */
 .weather-header { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
 .refresh-btn { background: none; border: 0.5px solid #ccc; border-radius: 8px; padding: 4px 10px; font-size: 12px; color: #666; cursor: pointer; display: flex; align-items: center; gap: 4px; margin-left: auto; }
@@ -30,7 +36,7 @@ section { margin-bottom: 2.5rem; }
 .temp-val { font-size: 26px; font-weight: 500; line-height: 1; }
 .temp-unit { font-size: 13px; color: #888; }
 .temp-loading { font-size: 26px; font-weight: 500; color: #ccc; }
-
+ 
 /* ── Todo ── */
 .divider { border: none; border-top: 0.5px solid #e0e0e0; margin: 0 0 2rem; }
 .todo-header { display: flex; align-items: center; gap: 8px; margin-bottom: 1rem; }
@@ -58,7 +64,13 @@ section { margin-bottom: 2.5rem; }
 </head>
 <body>
 <div class="wrap">
-
+ 
+  <!-- Topbar med bruker + logg ut -->
+  <div class="topbar">
+    <span class="user-pill" id="userPill">…</span>
+    <a class="logout-btn" href="/logout">Logg ut</a>
+  </div>
+ 
   <!-- Temperaturer -->
   <section>
     <div class="weather-header">
@@ -68,9 +80,9 @@ section { margin-bottom: 2.5rem; }
     <p id="status"></p>
     <div class="city-grid" id="cities"></div>
   </section>
-
+ 
   <hr class="divider" />
-
+ 
   <!-- Todo -->
   <section>
     <div class="todo-header">
@@ -84,21 +96,29 @@ section { margin-bottom: 2.5rem; }
       <div class="empty" id="emptyMsg">Ingen oppgaver ennå</div>
     </div>
   </section>
-
+ 
 </div>
-
+ 
 <script>
+/* ── Hent brukerinfo ── */
+fetch('/me').then(r => {
+  if (!r.ok) { window.location.href = '/login'; return; }
+  return r.json();
+}).then(data => {
+  if (data) document.getElementById('userPill').textContent = '👤 ' + data.username;
+});
+ 
 /* ── Vær ── */
 const cities = [
   { name: 'Oslo',     country: 'Norge',         flag: '', lat: 59.9139, lon: 10.7522,  bg: '#E1F5EE' },
   { name: 'London',   country: 'Storbritannia', flag: '', lat: 51.5074, lon: -0.1278,  bg: '#E6F1FB' },
   { name: 'New York', country: 'USA',           flag: '', lat: 40.7128, lon: -74.0060, bg: '#FAEEDA' }
 ];
-
+ 
 const cityContainer = document.getElementById('cities');
 const status        = document.getElementById('status');
 const cardEls       = {};
-
+ 
 cities.forEach(c => {
   const card = document.createElement('div');
   card.className = 'city-card';
@@ -115,11 +135,12 @@ cities.forEach(c => {
   cityContainer.appendChild(card);
   cardEls[c.name] = card;
 });
-
+ 
 async function fetchTemp(city) {
   const el = cardEls[city.name].querySelector('[data-temp]');
   try {
-    const res  = await fetch(`https://api.met.no/weatherapi/locationforecast/2.0/compact?lat=${city.lat}&lon=${city.lon}`);
+    const res  = await fetch(`/weather?lat=${city.lat}&lon=${city.lon}`);
+    if (res.status === 401) { window.location.href = '/login'; return; }
     const data = await res.json();
     const temp = data?.properties?.timeseries?.[0]?.data?.instant?.details?.air_temperature;
     if (temp != null) {
@@ -135,7 +156,7 @@ async function fetchTemp(city) {
     el.style.color = '#c0392b';
   }
 }
-
+ 
 async function updateAll() {
   status.textContent = 'Henter data…';
   document.getElementById('refreshBtn').disabled = true;
@@ -143,17 +164,17 @@ async function updateAll() {
   status.textContent = `Oppdatert ${new Date().toLocaleString('nb-NO')}`;
   document.getElementById('refreshBtn').disabled = false;
 }
-
+ 
 updateAll();
-
+ 
 /* ── Todo ── */
 const taskInput = document.getElementById('taskInput');
 const taskList  = document.getElementById('taskList');
 const emptyMsg  = document.getElementById('emptyMsg');
 let tasks = [];
-
+ 
 taskInput.addEventListener('keydown', e => { if (e.key === 'Enter') addTask(); });
-
+ 
 function addTask() {
   const text = taskInput.value.trim();
   if (!text) return;
@@ -161,33 +182,33 @@ function addTask() {
   taskInput.value = '';
   renderTasks();
 }
-
+ 
 function cycleStatus(id) {
   const t = tasks.find(t => t.id === id);
   if (!t || t.status === 'done') return;
   t.status = t.status === 'todo' ? 'doing' : 'todo';
   renderTasks();
 }
-
+ 
 function markDone(id) {
   const t = tasks.find(t => t.id === id);
   if (t) t.status = 'done';
   renderTasks();
 }
-
+ 
 function deleteTask(id) {
   tasks = tasks.filter(t => t.id !== id);
   renderTasks();
 }
-
+ 
 function renderTasks() {
   emptyMsg.style.display = tasks.length ? 'none' : 'block';
   taskList.querySelectorAll('.task-item').forEach(el => el.remove());
-
+ 
   tasks.forEach(t => {
     const item = document.createElement('div');
     item.className = 'task-item' + (t.status === 'done' ? ' done' : '');
-
+ 
     let badge = '';
     if (t.status === 'done') {
       badge = `<span class="status-badge badge-done-pill">✓ Ferdig</span>`;
@@ -196,11 +217,11 @@ function renderTasks() {
       const cls   = t.status === 'doing' ? 'badge-doing' : 'badge-todo';
       badge = `<button class="status-badge ${cls}" onclick="cycleStatus(${t.id})">${label}</button>`;
     }
-
+ 
     const doneBtn = t.status !== 'done'
       ? `<button class="done-btn" onclick="markDone(${t.id})" title="Marker som ferdig">✓</button>`
       : '';
-
+ 
     item.innerHTML = `
       ${badge}
       <span class="task-text">${t.text}</span>
@@ -210,7 +231,7 @@ function renderTasks() {
     taskList.appendChild(item);
   });
 }
-
+ 
 renderTasks();
 </script>
 </body>
