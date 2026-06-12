@@ -30,7 +30,7 @@ body { font-family: system-ui, Segoe UI, Roboto, Helvetica, Arial; margin: 0; pa
 <body>
 <div class="weather-wrap">
   <div class="weather-header">
-    <h1 class="weather-title">🌡 Temperaturer</h1>
+    <h1 class="weather-title"> Temperaturer</h1>
     <button class="refresh-btn" onclick="updateAll()" id="refreshBtn">↻ Oppdater</button>
   </div>
   <p id="status"></p>
@@ -39,9 +39,9 @@ body { font-family: system-ui, Segoe UI, Roboto, Helvetica, Arial; margin: 0; pa
 
 <script>
 const cities = [
-  { name: 'Oslo',     country: 'Norge',          flag: '🇳🇴', lat: 59.9139, lon: 10.7522,  bg: '#E1F5EE' },
-  { name: 'London',   country: 'Storbritannia',  flag: '🇬🇧', lat: 51.5074, lon: -0.1278,  bg: '#E6F1FB' },
-  { name: 'New York', country: 'USA',            flag: '🇺🇸', lat: 40.7128, lon: -74.0060, bg: '#FAEEDA' }
+  { name: 'Oslo',     country: 'Norge',          flag: '', lat: 59.9139, lon: 10.7522,  bg: '#E1F5EE' },
+  { name: 'London',   country: 'Storbritannia',  flag: '', lat: 51.5074, lon: -0.1278,  bg: '#E6F1FB' },
+  { name: 'New York', country: 'USA',            flag: '', lat: 40.7128, lon: -74.0060, bg: '#FAEEDA' }
 ];
 
 const container = document.getElementById('cities');
