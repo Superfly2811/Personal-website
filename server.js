@@ -21,8 +21,8 @@ app.use(session({
 // Database-tilkobling
 const db = mysql.createPool({
   host:     process.env.DB_HOST     || '192.168.64.3',
-  user:     process.env.DB_USER     || 'root',
-  password: process.env.DB_PASSWORD || '',
+  user:     process.env.DB_USER     || 'minbruker',
+  password: process.env.DB_PASSWORD || 'passord123',
   database: process.env.DB_NAME     || 'eksamen_db',
   port:     process.env.DB_PORT     || 3306
 });

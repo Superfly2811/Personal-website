@@ -14,5 +14,4 @@ async function createUser(username, password) {
   await db.end();
 }
 
-// ← Endre disse:
-createUser('admin', 'dittPassord123');
+createUser('Eirik2811', 'passord123');
