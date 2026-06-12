@@ -6,10 +6,15 @@
 <title>Verdens temperaturer</title>
 <style>
 * { box-sizing: border-box; }
-body { font-family: system-ui, Segoe UI, Roboto, Helvetica, Arial; margin: 0; padding: 24px; background: #f5f5f3; }
-.weather-wrap { max-width: 700px; margin: 0 auto; }
-.weather-header { display: flex; align-items: baseline; gap: 12px; margin-bottom: 8px; }
-.weather-title { font-size: 20px; font-weight: 500; color: #1a1a1a; margin: 0; }
+body { font-family: system-ui, Segoe UI, Roboto, Helvetica, Arial; margin: 0; padding: 24px; background: #f5f5f3; color: #1a1a1a; }
+.wrap { max-width: 700px; margin: 0 auto; }
+
+/* ── Felles ── */
+h1, h2 { font-size: 20px; font-weight: 500; margin: 0; }
+section { margin-bottom: 2.5rem; }
+
+/* ── Vær ── */
+.weather-header { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
 .refresh-btn { background: none; border: 0.5px solid #ccc; border-radius: 8px; padding: 4px 10px; font-size: 12px; color: #666; cursor: pointer; display: flex; align-items: center; gap: 4px; margin-left: auto; }
 .refresh-btn:hover { background: #eee; }
 .refresh-btn:disabled { opacity: 0.5; cursor: default; }
@@ -19,34 +24,80 @@ body { font-family: system-ui, Segoe UI, Roboto, Helvetica, Arial; margin: 0; pa
 .city-card:hover { border-color: #bbb; }
 .card-top { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
 .city-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
-.city-name { font-size: 13px; font-weight: 500; color: #1a1a1a; line-height: 1.3; }
+.city-name { font-size: 13px; font-weight: 500; line-height: 1.3; }
 .city-country { font-size: 11px; color: #888; }
 .temp-row { display: flex; align-items: baseline; gap: 6px; }
-.temp-val { font-size: 26px; font-weight: 500; color: #1a1a1a; line-height: 1; }
+.temp-val { font-size: 26px; font-weight: 500; line-height: 1; }
 .temp-unit { font-size: 13px; color: #888; }
 .temp-loading { font-size: 26px; font-weight: 500; color: #ccc; }
+
+/* ── Todo ── */
+.divider { border: none; border-top: 0.5px solid #e0e0e0; margin: 0 0 2rem; }
+.todo-header { display: flex; align-items: center; gap: 8px; margin-bottom: 1rem; }
+.add-row { display: flex; gap: 8px; margin-bottom: 1.25rem; }
+.add-row input { flex: 1; font-size: 14px; padding: 8px 12px; border: 0.5px solid #ccc; border-radius: 8px; outline: none; background: #fff; color: #1a1a1a; }
+.add-row input:focus { border-color: #999; box-shadow: 0 0 0 3px rgba(0,0,0,0.06); }
+.add-btn { flex-shrink: 0; display: flex; align-items: center; gap: 6px; padding: 8px 14px; font-size: 14px; background: none; border: 0.5px solid #ccc; border-radius: 8px; cursor: pointer; color: #1a1a1a; }
+.add-btn:hover { background: #eee; }
+.task-list { display: flex; flex-direction: column; gap: 8px; }
+.task-item { background: #fff; border: 0.5px solid #e0e0e0; border-radius: 12px; padding: 10px 14px; display: flex; align-items: center; gap: 10px; transition: border-color 0.15s, opacity 0.3s; }
+.task-item:hover { border-color: #bbb; }
+.task-item.done { opacity: 0.45; }
+.task-text { flex: 1; font-size: 14px; }
+.task-item.done .task-text { text-decoration: line-through; color: #888; }
+.status-badge { font-size: 11px; font-weight: 500; padding: 3px 9px; border-radius: 99px; border: none; cursor: pointer; white-space: nowrap; }
+.badge-todo  { background: #f1efe8; color: #5f5e5a; }
+.badge-doing { background: #FAEEDA; color: #633806; }
+.badge-done-pill { background: #EAF3DE; color: #27500A; cursor: default; }
+.done-btn { display: flex; align-items: center; padding: 4px 8px; font-size: 18px; background: none; border: 0.5px solid #ccc; border-radius: 8px; cursor: pointer; color: #888; }
+.done-btn:hover { color: #3B6D11; border-color: #97C459; background: #EAF3DE; }
+.del-btn { background: none; border: none; cursor: pointer; color: #aaa; padding: 4px 6px; font-size: 16px; border-radius: 8px; line-height: 1; }
+.del-btn:hover { color: #c0392b; background: #FCEBEB; }
+.empty { font-size: 13px; color: #bbb; text-align: center; padding: 1.5rem 0; }
 </style>
 </head>
 <body>
-<div class="weather-wrap">
-  <div class="weather-header">
-    <h1 class="weather-title"> Temperaturer</h1>
-    <button class="refresh-btn" onclick="updateAll()" id="refreshBtn">↻ Oppdater</button>
-  </div>
-  <p id="status"></p>
-  <div class="city-grid" id="cities"></div>
+<div class="wrap">
+
+  <!-- Temperaturer -->
+  <section>
+    <div class="weather-header">
+      <h1>Temperaturer</h1>
+      <button class="refresh-btn" onclick="updateAll()" id="refreshBtn">↻ Oppdater</button>
+    </div>
+    <p id="status"></p>
+    <div class="city-grid" id="cities"></div>
+  </section>
+
+  <hr class="divider" />
+
+  <!-- Todo -->
+  <section>
+    <div class="todo-header">
+      <h2>Ting Du Må Gjøre</h2>
+    </div>
+    <div class="add-row">
+      <input type="text" id="taskInput" placeholder="Legg til en oppgave…" />
+      <button class="add-btn" onclick="addTask()">+ Legg til</button>
+    </div>
+    <div class="task-list" id="taskList">
+      <div class="empty" id="emptyMsg">Ingen oppgaver ennå</div>
+    </div>
+  </section>
+
 </div>
 
 <script>
+/* ── Vær ── */
 const cities = [
-  { name: 'Oslo',     country: 'Norge',          flag: '', lat: 59.9139, lon: 10.7522,  bg: '#E1F5EE' },
-  { name: 'London',   country: 'Storbritannia',  flag: '', lat: 51.5074, lon: -0.1278,  bg: '#E6F1FB' },
-  { name: 'New York', country: 'USA',            flag: '', lat: 40.7128, lon: -74.0060, bg: '#FAEEDA' }
+  { name: 'Oslo',     country: 'Norge',         flag: '', lat: 59.9139, lon: 10.7522,  bg: '#E1F5EE' },
+  { name: 'London',   country: 'Storbritannia', flag: '', lat: 51.5074, lon: -0.1278,  bg: '#E6F1FB' },
+  { name: 'New York', country: 'USA',           flag: '', lat: 40.7128, lon: -74.0060, bg: '#FAEEDA' }
 ];
 
-const container = document.getElementById('cities');
-const status    = document.getElementById('status');
-const cardEls   = {};
+const cityContainer = document.getElementById('cities');
+const status        = document.getElementById('status');
+const cardEls       = {};
 
 cities.forEach(c => {
   const card = document.createElement('div');
@@ -61,7 +112,7 @@ cities.forEach(c => {
     </div>
     <div class="temp-row"><span class="temp-loading" data-temp>—</span></div>
   `;
-  container.appendChild(card);
+  cityContainer.appendChild(card);
   cardEls[c.name] = card;
 });
 
@@ -94,6 +145,73 @@ async function updateAll() {
 }
 
 updateAll();
+
+/* ── Todo ── */
+const taskInput = document.getElementById('taskInput');
+const taskList  = document.getElementById('taskList');
+const emptyMsg  = document.getElementById('emptyMsg');
+let tasks = [];
+
+taskInput.addEventListener('keydown', e => { if (e.key === 'Enter') addTask(); });
+
+function addTask() {
+  const text = taskInput.value.trim();
+  if (!text) return;
+  tasks.push({ id: Date.now(), text, status: 'todo' });
+  taskInput.value = '';
+  renderTasks();
+}
+
+function cycleStatus(id) {
+  const t = tasks.find(t => t.id === id);
+  if (!t || t.status === 'done') return;
+  t.status = t.status === 'todo' ? 'doing' : 'todo';
+  renderTasks();
+}
+
+function markDone(id) {
+  const t = tasks.find(t => t.id === id);
+  if (t) t.status = 'done';
+  renderTasks();
+}
+
+function deleteTask(id) {
+  tasks = tasks.filter(t => t.id !== id);
+  renderTasks();
+}
+
+function renderTasks() {
+  emptyMsg.style.display = tasks.length ? 'none' : 'block';
+  taskList.querySelectorAll('.task-item').forEach(el => el.remove());
+
+  tasks.forEach(t => {
+    const item = document.createElement('div');
+    item.className = 'task-item' + (t.status === 'done' ? ' done' : '');
+
+    let badge = '';
+    if (t.status === 'done') {
+      badge = `<span class="status-badge badge-done-pill">✓ Ferdig</span>`;
+    } else {
+      const label = t.status === 'doing' ? 'Pågår' : 'Å gjøre';
+      const cls   = t.status === 'doing' ? 'badge-doing' : 'badge-todo';
+      badge = `<button class="status-badge ${cls}" onclick="cycleStatus(${t.id})">${label}</button>`;
+    }
+
+    const doneBtn = t.status !== 'done'
+      ? `<button class="done-btn" onclick="markDone(${t.id})" title="Marker som ferdig">✓</button>`
+      : '';
+
+    item.innerHTML = `
+      ${badge}
+      <span class="task-text">${t.text}</span>
+      ${doneBtn}
+      <button class="del-btn" onclick="deleteTask(${t.id})" title="Slett">🗑</button>
+    `;
+    taskList.appendChild(item);
+  });
+}
+
+renderTasks();
 </script>
 </body>
 </html>
