@@ -14,4 +14,4 @@ async function createUser(username, password) {
   await db.end();
 }
 
-createUser('Eirik2811', 'passord123');
+createUser('Hammis', 'passord123');
